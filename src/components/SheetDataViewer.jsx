@@ -133,7 +133,7 @@ export default function SheetDataViewer() {
 
       {/* RESPONSIVE CARD THUMBNAIL LAYOUT */}
       {!loading && !error && filteredData.length > 0 && (
-        <div className="row row-cols-1 row-cols-md-2 g-3">
+        <div className="row row-cols-1 row-cols-md-4 g-3">
           {filteredData.map((contact, index) => {
             const rawName = contact.Name || contact.name || Object.values(contact)[0] || "No Name";
             const contactPhone = contact.Phone || contact.phone || contact.Mobile || contact.mobile || "";
