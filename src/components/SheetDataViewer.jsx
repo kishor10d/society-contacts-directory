@@ -139,7 +139,7 @@ export default function SheetDataViewer() {
       )}
       
       {!loading && !error && filteredData.length > 0 && (
-        <div className="row row-cols-1 row-cols-md-2 g-3">
+        <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
           {filteredData.map((contact, index) => {
             const rawName = contact.Name || contact.name || Object.values(contact)[0] || "No Name";
             const contactPhone = contact.Phone || contact.phone || contact.Mobile || contact.mobile || "";
@@ -149,12 +149,28 @@ export default function SheetDataViewer() {
 
             return (
               <div key={index} className="col">
-                <div className="card h-100 border border-light shadow-xs rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden transition-all hover-shadow">
+                <div 
+                  className="card h-100 shadow-sm rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden"
+                  style={{ 
+                    border: '1.5px solid var(--bs-border-color-translucent)',
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#0d6efd';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--bs-border-color-translucent)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
+                  }}
+                >
                   
                   {/* TOP PANEL: AVATAR & METADATA INFOBAR */}
                   <div className="p-3 d-flex align-items-start gap-3 flex-grow-1">
                     
-                    {/* Clean Avatar Circle (No icon badge overlay) */}
+                    {/* Clean Avatar Circle */}
                     <div className="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
                          style={{ width: '50px', height: '50px', fontSize: '18px' }}>
                       {rawName.toString().charAt(0).toUpperCase()}
@@ -180,13 +196,13 @@ export default function SheetDataViewer() {
                     </div>
                   </div>
 
-                  {/* BOTTOM PANEL: FULL-WIDTH ACTION ACTION TABS */}
+                  {/* BOTTOM PANEL: FULL-WIDTH ACTION TABS */}
                   {contactPhone ? (
                     <div className="d-flex border-top bg-light">
                       {/* CALL ACTION BUTTON */}
                       <a 
                         href={`tel:${contactPhone}`}
-                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 border-end d-flex align-items-center justify-content-center gap-2 fw-semibold text-success hover-bg-light"
+                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 border-end d-flex align-items-center justify-content-center gap-2 fw-semibold text-success"
                         style={{ fontSize: '13px' }}
                       >
                         <i className="bi bi-telephone-fill"></i> Call
@@ -195,7 +211,7 @@ export default function SheetDataViewer() {
                       {/* SAVE ACTION BUTTON */}
                       <button 
                         onClick={() => handleSaveContact(contact, rawName, contactPhone, subTitle)}
-                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold text-primary hover-bg-light"
+                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold text-primary"
                         style={{ fontSize: '13px' }}
                       >
                         <i className="bi bi-person-plus-fill"></i> Save Contact
