@@ -138,6 +138,7 @@ export default function SheetDataViewer() {
         </div>
       )}
       
+      {/* LOCKED DATA CARD LAYOUT MAPPED: 1 ON MOBILE, 4 ON DESKTOP */}
       {!loading && !error && filteredData.length > 0 && (
         <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
           {filteredData.map((contact, index) => {
@@ -170,10 +171,34 @@ export default function SheetDataViewer() {
                   {/* TOP PANEL: AVATAR & METADATA INFOBAR */}
                   <div className="p-3 d-flex align-items-start gap-3 flex-grow-1">
                     
-                    {/* Clean Avatar Circle */}
-                    <div className="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" 
-                         style={{ width: '50px', height: '50px', fontSize: '18px' }}>
-                      {rawName.toString().charAt(0).toUpperCase()}
+                    {/* AVATAR WRAPPER CONTAINER FRAME */}
+                    <div className="position-relative flex-shrink-0" style={{ width: '50px', height: '50px' }}>
+                      
+                      {/* Monogram Initials Circle Base */}
+                      <div className="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm h-100 w-100" 
+                           style={{ fontSize: '18px' }}>
+                        {rawName.toString().charAt(0).toUpperCase()}
+                      </div>
+
+                      {/* ABSOLUTE OVERLAID WHATSAPP ACTION BUTTON BADGE */}
+                      {contactPhone && (
+                        <a 
+                          href={`https://wa.me/${contactPhone.toString().replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center border border-2 border-white shadow"
+                          style={{ 
+                            width: '22px', 
+                            height: '22px', 
+                            fontSize: '11px',
+                            zIndex: '2'
+                          }}
+                          title={`Chat with ${rawName} on WhatsApp`}
+                          onClick={(e) => e.stopPropagation()} // Bypasses accidental container execution captures
+                        >
+                          <i className="bi bi-whatsapp"></i>
+                        </a>
+                      )}
                     </div>
 
                     {/* Meta Fields Content Stack */}
