@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, Link } from 'react-router-dom';
 
 export default function MainLayout({ sheetNames }) {
   return (
@@ -9,8 +9,12 @@ export default function MainLayout({ sheetNames }) {
       <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-3 py-2 w-100">
         <div className="container-fluid px-0">
           
-          {/* Brand Identity Branding */}
-          <div className="d-flex align-items-center text-white me-3">
+          {/* BRAND LOGO IDENTITY (Clickable Link to Home Dashboard) */}
+          <Link 
+            to="/" 
+            className="d-flex align-items-center text-white text-decoration-none me-3 hover-opacity transition-all"
+            title="Go to Home Dashboard"
+          >
             <span className="fs-3 me-2 text-info">
               <i className="bi bi-person-lines-fill"></i>
             </span>
@@ -20,7 +24,7 @@ export default function MainLayout({ sheetNames }) {
                 Contacts Directory
               </small>
             </div>
-          </div>
+          </Link>
 
           {/* Mobile Sync Badge (Hidden on extra small screens to save header space) */}
           <span className="badge bg-info text-dark px-2 py-1.5 rounded-pill fw-semibold shadow-sm d-none d-sm-inline-block me-auto">

@@ -26,8 +26,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainLayout sheetNames={SHEET_NAMES} />}>
-          <Route path="sheet/:sheetName" element={<SheetDataViewer />} />
           <Route index element={<Dashboard />} />
+          <Route path="sheet/:sheetName" element={<SheetDataViewer />} />
           <Route path="*" element={<div className="text-center text-muted mt-5"><h3>404: Sheet Not Found</h3></div>} />
         </Route>
       </Routes>
