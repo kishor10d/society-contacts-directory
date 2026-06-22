@@ -42,7 +42,21 @@ export default function MainLayout({ sheetNames }) {
 
           {/* Collapsible Menu Container */}
           <div className="collapse navbar-collapse" id="skyveDirectoryNavbar">
+            
             <ul className="navbar-nav ms-lg-4 mt-3 mt-lg-0 gap-1 flex-grow-1 justify-content-lg-start">
+							<li className="nav-item">
+								<NavLink
+									to="/"
+									end // Prevents home link matching sub-directories path segments active states
+									className={({ isActive }) => 
+										`nav-link d-flex align-items-center gap-2 py-2 px-3 rounded-2 transition-all ${
+											isActive ? 'bg-primary text-white shadow-sm fw-semibold active' : 'text-secondary bg-light-hover'
+										}`
+									}
+								>
+									<i className="bi bi-house-door-fill text-muted d-lg-none"></i> Home
+								</NavLink>
+							</li>
               {sheetNames.map((sheet) => (
                 <li className="nav-item" key={sheet}>
                   <NavLink

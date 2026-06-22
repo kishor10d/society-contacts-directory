@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 import SheetDataViewer from './components/SheetDataViewer';
+import Dashboard from './components/Dashboard';
 
 // Parse the comma-separated string from .env into an array
 const SHEET_NAMES_STRING = import.meta.env.VITE_SHEET_NAMES || 'Dashboard';
@@ -26,7 +27,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout sheetNames={SHEET_NAMES} />}>
           <Route path="sheet/:sheetName" element={<SheetDataViewer />} />
-          <Route index element={<Navigate to={`/sheet/${encodeURIComponent(SHEET_NAMES[0])}`} replace />} />
+          <Route index element={<Dashboard />} />
           <Route path="*" element={<div className="text-center text-muted mt-5"><h3>404: Sheet Not Found</h3></div>} />
         </Route>
       </Routes>
