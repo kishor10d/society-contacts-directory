@@ -1,9 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import FilterBar from './FilterBar';
 
 const SPREADSHEET_ID = import.meta.env.VITE_V_SPREADSHEET_ID || import.meta.env.VITE_SPREADSHEET_ID;
 const MAX_NAME_LENGTH = 20;
+const CATEGORY_EXCLUDED_KEYS = ['name', 'phone', 'mobile', 'email', 'remarks', 'note', 'notes', 'address'];
+
+// Picks the column that reads best as a set of quick-filter chips: not a
+// name/phone/free-text field, has more than one value, and its values repeat
+// across rows often enough to be a useful category (rather than near-unique
+// per row, like a "Remarks" column would be).
+function detectCategoryColumn(data, headers) {
+  if (data.length < 2) return null;
+  let best = null;
+  for (const header of headers) {
+    const key = header.toLowerCase();
+    if (CATEGORY_EXCLUDED_KEYS.some(k => key.includes(k))) continue;
+
+    const values = data
+      .map(row => row[header])
+      .filter(v => v !== undefined && v !== null && v.toString().trim() !== '');
+    if (values.length === 0) continue;
+
+    const uniqueCount = new Set(values.map(v => v.toString().trim())).size;
+    if (uniqueCount < 2 || uniqueCount > 15) continue;
+
+    const ratio = uniqueCount / values.length;
+    if (ratio > 0.6) continue;
+
+    if (!best || ratio < best.ratio) {
+      best = { header, ratio };
+    }
+  }
+  return best ? best.header : null;
+}
+
+function getCategoryOptions(data, categoryColumn) {
+  if (!categoryColumn) return [];
+  const counts = new Map();
+  data.forEach(row => {
+    const val = row[categoryColumn];
+    if (val === undefined || val === null || val.toString().trim() === '') return;
+    const key = val.toString().trim();
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  return Array.from(counts.entries())
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count);
+}
 
 export default function SheetDataViewer() {
   const { sheetName } = useParams();
@@ -13,7 +57,8 @@ export default function SheetDataViewer() {
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedColumn, setSelectedColumn] = useState('all');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const truncateName = (str) => {
     if (!str) return "No Name";
@@ -57,7 +102,8 @@ export default function SheetDataViewer() {
       setData([]);
       setFilteredData([]);
       setSearchTerm('');
-      setSelectedColumn('all');
+      setDebouncedSearchTerm('');
+      setSelectedCategory('all');
       
       try {
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
@@ -88,21 +134,29 @@ export default function SheetDataViewer() {
     if (sheetName) fetchData();
   }, [sheetName]);
 
+  // Debounce the raw keystrokes so filtering doesn't run on every character,
+  // which can stutter on longer sheets when typing on a phone.
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setDebouncedSearchTerm(searchTerm), 200);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const headers = useMemo(() => (data.length > 0 ? Object.keys(data[0]) : []), [data]);
+  const categoryColumn = useMemo(() => detectCategoryColumn(data, headers), [data, headers]);
+  const categoryOptions = useMemo(() => getCategoryOptions(data, categoryColumn), [data, categoryColumn]);
+
   useEffect(() => {
     if (data.length === 0) return;
-    const lowerSearch = searchTerm.toLowerCase();
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
     const results = data.filter((row) => {
-      if (!searchTerm) return true;
-      if (selectedColumn === 'all') {
-        return Object.values(row).some(val => val?.toString().toLowerCase().includes(lowerSearch));
-      } else {
-        return row[selectedColumn]?.toString().toLowerCase().includes(lowerSearch);
+      if (selectedCategory !== 'all' && row[categoryColumn]?.toString().trim() !== selectedCategory) {
+        return false;
       }
+      if (!debouncedSearchTerm) return true;
+      return Object.values(row).some(val => val?.toString().toLowerCase().includes(lowerSearch));
     });
     setFilteredData(results);
-  }, [searchTerm, selectedColumn, data]);
-
-  const headers = data.length > 0 ? Object.keys(data[0]) : [];
+  }, [debouncedSearchTerm, selectedCategory, data, categoryColumn]);
 
   return (
     <div className="card border-0 shadow-sm bg-white p-4 rounded-3">
@@ -115,12 +169,13 @@ export default function SheetDataViewer() {
       </div>
 
       {!loading && !error && data.length > 0 && (
-        <FilterBar 
+        <FilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedColumn={selectedColumn}
-          setSelectedColumn={setSelectedColumn}
-          headers={headers}
+          categoryColumn={categoryColumn}
+          categoryOptions={categoryOptions}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
         />
       )}
 
@@ -150,23 +205,7 @@ export default function SheetDataViewer() {
 
             return (
               <div key={index} className="col">
-                <div 
-                  className="card h-100 shadow-sm rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden"
-                  style={{ 
-                    border: '1.5px solid var(--bs-border-color-translucent)',
-                    transition: 'all 0.2s ease-in-out'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#0d6efd';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--bs-border-color-translucent)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
-                  }}
-                >
+                <div className="card hover-card h-100 shadow-sm rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden">
                   
                   {/* TOP PANEL: AVATAR & METADATA INFOBAR */}
                   <div className="p-3 d-flex align-items-start gap-3 flex-grow-1">
@@ -176,21 +215,19 @@ export default function SheetDataViewer() {
                       
                       {/* Monogram Initials Circle Base */}
                       <div className="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm h-100 w-100" 
-                           style={{ fontSize: '18px' }}>
+                           style={{ fontSize: '1.125rem' }}>
                         {rawName.toString().charAt(0).toUpperCase()}
                       </div>
 
                       {/* ABSOLUTE OVERLAID WHATSAPP ACTION BUTTON BADGE */}
                       {contactPhone && (
-                        <a 
+                        <a
                           href={`https://wa.me/${contactPhone.toString().replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center border border-2 border-white shadow"
-                          style={{ 
-                            width: '22px', 
-                            height: '22px', 
-                            fontSize: '11px',
+                          className="tap-target-expand position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center border border-2 border-white shadow"
+                          style={{
+                            width: '26px',
+                            height: '26px',
+                            fontSize: '0.8125rem',
                             zIndex: '2'
                           }}
                           title={`Chat with ${rawName} on WhatsApp`}
@@ -212,7 +249,7 @@ export default function SheetDataViewer() {
                         {Object.entries(contact).map(([key, val]) => {
                           if (['name', 'phone', 'mobile', 'designation', 'role'].includes(key.toLowerCase()) || !val) return null;
                           return (
-                            <span key={key} className="badge bg-light text-secondary border px-2 py-1 rounded font-monospace" style={{ fontSize: '10px' }}>
+                            <span key={key} className="badge bg-light text-secondary border px-2 py-1 rounded font-monospace" style={{ fontSize: '0.625rem' }}>
                               <strong className="text-dark">{key}:</strong> {val.toString()}
                             </span>
                           );
@@ -228,7 +265,7 @@ export default function SheetDataViewer() {
                       <a 
                         href={`tel:${contactPhone}`}
                         className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 border-end d-flex align-items-center justify-content-center gap-2 fw-semibold text-success"
-                        style={{ fontSize: '13px' }}
+                        style={{ fontSize: '0.8125rem' }}
                       >
                         <i className="bi bi-telephone-fill"></i> Call
                       </a>
@@ -237,7 +274,7 @@ export default function SheetDataViewer() {
                       <button 
                         onClick={() => handleSaveContact(contact, rawName, contactPhone, subTitle)}
                         className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold text-primary"
-                        style={{ fontSize: '13px' }}
+                        style={{ fontSize: '0.8125rem' }}
                       >
                         <i className="bi bi-person-plus-fill"></i> Save Contact
                       </button>

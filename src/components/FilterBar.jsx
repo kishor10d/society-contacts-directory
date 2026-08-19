@@ -1,40 +1,58 @@
 import React from 'react';
 
-export default function FilterBar({ searchTerm, setSearchTerm, selectedColumn, setSelectedColumn, headers }) {
+export default function FilterBar({
+  searchTerm,
+  setSearchTerm,
+  categoryColumn,
+  categoryOptions,
+  selectedCategory,
+  setSelectedCategory,
+}) {
   return (
-    <div className="row g-3 p-3 bg-light rounded-3 border mb-4 mx-0 shadow-sm align-items-end">
-      
-      {/* Search Input */}
-      <div className="col-12 col-sm-6 col-md-8">
-        <label className="form-label small fw-bold text-secondary mb-1">
-          <i className="bi bi-search me-1"></i> Search Contacts:
-        </label>
-        <input
-          type="text"
-          className="form-control bg-white shadow-none"
-          placeholder="Type name, designation, status..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+    <div className="filter-bar-sticky p-3 bg-light rounded-3 border mb-4 shadow-sm">
+      <label className="form-label small fw-bold text-secondary mb-1">
+        <i className="bi bi-search me-1"></i> Search Contacts:
+      </label>
+      <input
+        type="text"
+        className="form-control bg-white shadow-none mb-3"
+        placeholder="Type name, phone, or any detail..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
 
-      {/* Field Selector Dropdown */}
-      <div className="col-12 col-sm-6 col-md-4">
-        <label className="form-label small fw-bold text-secondary mb-1">
-          <i className="bi bi-filter-square me-1"></i> Search Field:
-        </label>
-        <select 
-          className="form-select bg-white cursor-pointer shadow-none"
-          value={selectedColumn} 
-          onChange={(e) => setSelectedColumn(e.target.value)}
-        >
-          <option value="all">All Fields</option>
-          {headers.map(header => (
-            <option key={header} value={header}>{header}</option>
-          ))}
-        </select>
-      </div>
-
+      {categoryColumn && categoryOptions.length > 0 && (
+        <>
+          <label className="form-label small fw-bold text-secondary mb-2 d-block">
+            <i className="bi bi-funnel-fill me-1"></i> Filter by {categoryColumn}:
+          </label>
+          <div className="d-flex gap-2 overflow-auto chip-row">
+            <button
+              type="button"
+              className={`btn rounded-pill flex-shrink-0 px-3 py-2 fw-semibold ${
+                selectedCategory === 'all' ? 'btn-primary' : 'btn-outline-secondary'
+              }`}
+              style={{ fontSize: '0.8125rem' }}
+              onClick={() => setSelectedCategory('all')}
+            >
+              All
+            </button>
+            {categoryOptions.map(({ value, count }) => (
+              <button
+                key={value}
+                type="button"
+                className={`btn rounded-pill flex-shrink-0 px-3 py-2 fw-semibold ${
+                  selectedCategory === value ? 'btn-primary' : 'btn-outline-secondary'
+                }`}
+                style={{ fontSize: '0.8125rem' }}
+                onClick={() => setSelectedCategory(value)}
+              >
+                {value} <span className="opacity-75">{count}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

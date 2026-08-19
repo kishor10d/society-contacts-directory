@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import MainLayout from './components/MainLayout';
 import SheetDataViewer from './components/SheetDataViewer';
 import Dashboard from './components/Dashboard';
+import './App.css';
 
 // Parse the comma-separated string from .env into an array
 const SHEET_NAMES_STRING = import.meta.env.VITE_SHEET_NAMES || 'Dashboard';
