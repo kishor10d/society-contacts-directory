@@ -5,6 +5,46 @@ import FilterBar from './FilterBar';
 const SPREADSHEET_ID = import.meta.env.VITE_V_SPREADSHEET_ID || import.meta.env.VITE_SPREADSHEET_ID;
 const MAX_NAME_LENGTH = 20;
 const CATEGORY_EXCLUDED_KEYS = ['name', 'phone', 'mobile', 'email', 'remarks', 'note', 'notes', 'address'];
+const CACHE_TTL_MS = 20 * 60 * 1000;
+const CACHE_KEY_PREFIX = 'skyve_sheet_cache_';
+
+function readCache(sheetName) {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY_PREFIX + sheetName);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.rows) || Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
+    return parsed.rows;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(sheetName, rows) {
+  try {
+    localStorage.setItem(CACHE_KEY_PREFIX + sheetName, JSON.stringify({ timestamp: Date.now(), rows }));
+  } catch {
+    // Storage unavailable (private browsing, quota) - caching is just an optimization, skip silently.
+  }
+}
+
+async function fetchSheetRows(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const response = await fetch(url);
+  const text = await response.text();
+  const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+  const json = JSON.parse(jsonString);
+
+  const cols = json.table.cols.map(col => col.label || '');
+  return json.table.rows.map(row => {
+    const rowData = {};
+    row.c.forEach((cell, index) => {
+      const key = cols[index] || `Column_${index + 1}`;
+      rowData[key] = cell ? cell.v : '';
+    });
+    return rowData;
+  });
+}
 
 // Picks the column that reads best as a set of quick-filter chips: not a
 // name/phone/free-text field, has more than one value, and its values repeat
@@ -57,6 +97,7 @@ export default function SheetDataViewer() {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,34 +140,31 @@ export default function SheetDataViewer() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const loadData = async () => {
       setError(null);
-      setData([]);
-      setFilteredData([]);
       setSearchTerm('');
       setDebouncedSearchTerm('');
       setSelectedCategory('all');
-      
-      try {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-        const json = JSON.parse(jsonString);
-        
-        const cols = json.table.cols.map(col => col.label || '');
-        const rows = json.table.rows.map(row => {
-          const rowData = {};
-          row.c.forEach((cell, index) => {
-            const key = cols[index] || `Column_${index + 1}`;
-            rowData[key] = cell ? cell.v : '';
-          });
-          return rowData;
-        });
 
+      // Sheet data rarely changes, so serve a recent cached copy instantly
+      // instead of hitting Google Sheets on every visit.
+      const cachedRows = readCache(sheetName);
+      if (cachedRows) {
+        setData(cachedRows);
+        setFilteredData(cachedRows);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setData([]);
+      setFilteredData([]);
+
+      try {
+        const rows = await fetchSheetRows(sheetName);
         setData(rows);
         setFilteredData(rows);
+        writeCache(sheetName, rows);
       } catch (err) {
         setError(`Failed to retrieve records for sheet "${sheetName}". Ensure the sheet permissions are public.`);
       } finally {
@@ -134,8 +172,24 @@ export default function SheetDataViewer() {
       }
     };
 
-    if (sheetName) fetchData();
+    if (sheetName) loadData();
   }, [sheetName]);
+
+  const handleRefresh = async () => {
+    if (!sheetName || refreshing) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      const rows = await fetchSheetRows(sheetName);
+      setData(rows);
+      setFilteredData(rows);
+      writeCache(sheetName, rows);
+    } catch (err) {
+      setError(`Failed to retrieve records for sheet "${sheetName}". Ensure the sheet permissions are public.`);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Debounce the raw keystrokes so filtering doesn't run on every character,
   // which can stutter on longer sheets when typing on a phone.
@@ -166,9 +220,23 @@ export default function SheetDataViewer() {
       
       <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-2">
         <h2 className="h4 mb-0 fw-bold text-dark">{sheetName} Directory</h2>
-        <span className="badge bg-primary text-white px-3 py-2 rounded-2 fs-7 fw-medium shadow-sm">
-          {filteredData.length} Contacts Found
-        </span>
+        <div className="d-flex align-items-center gap-2">
+          <span className="badge bg-primary text-white px-3 py-2 rounded-2 fs-7 fw-medium shadow-sm">
+            {filteredData.length} Contacts Found
+          </span>
+          {!loading && !error && (
+            <button
+              type="button"
+              className="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style={{ width: '36px', height: '36px' }}
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Refresh contacts"
+            >
+              <i className={`bi bi-arrow-clockwise ${refreshing ? 'spin' : ''}`}></i>
+            </button>
+          )}
+        </div>
       </div>
 
       {!loading && !error && data.length > 0 && (
