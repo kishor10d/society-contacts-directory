@@ -23,11 +23,14 @@ function detectCategoryColumn(data, headers) {
     if (values.length === 0) continue;
 
     const uniqueCount = new Set(values.map(v => v.toString().trim())).size;
-    if (uniqueCount < 2 || uniqueCount > 15) continue;
+    // Needs at least one repeated value to be worth grouping into chips
+    // (uniqueCount === values.length means every row is distinct), and few
+    // enough distinct values that the chip row stays usable. A plain ratio
+    // cutoff was too strict on small sheets (e.g. 2 unique values across 3
+    // rows), rejecting real categories just because the sample was small.
+    if (uniqueCount < 2 || uniqueCount >= values.length || uniqueCount > 15) continue;
 
     const ratio = uniqueCount / values.length;
-    if (ratio > 0.6) continue;
-
     if (!best || ratio < best.ratio) {
       best = { header, ratio };
     }
