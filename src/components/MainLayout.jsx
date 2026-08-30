@@ -93,21 +93,8 @@ export default function MainLayout({ sheetNames }) {
 
       {/* FOOTER FRAME */}
       <footer className="bg-white text-muted py-3 border-top mt-auto small w-100">
-        <div className="container-fluid px-3 d-flex flex-column flex-sm-row justify-content-sm-between align-items-center text-center gap-1">
-          <span>
-            &copy; {new Date().getFullYear()} CityOne Skyve Contacts. All rights reserved.
-          </span>
-          <span>
-            Developed by{' '}
-            <a
-              href="https://react.kishor10d.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted text-decoration-underline"
-            >
-              Kishor Mali
-            </a>
-          </span>
+        <div className="container-fluid px-3 text-center">
+          &copy; {new Date().getFullYear()} CityOne Skyve Contacts. All rights reserved.
         </div>
       </footer>
     </div>
