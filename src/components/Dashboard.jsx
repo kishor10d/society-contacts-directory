@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import InstallPromo from './InstallPromo';
+import GlobalSearch from './GlobalSearch';
+import ContactCard from './ContactCard';
+import { getFavorites } from '../utils/favorites';
+import { getRecent } from '../utils/recent';
 
 // Fetch names from environment variables
 const SHEET_NAMES_ENV = import.meta.env.VITE_SHEET_NAMES || '';
@@ -12,85 +16,138 @@ const SHEET_NAMES = SHEET_NAMES_ENV ? SHEET_NAMES_ENV.split(',').map(s => s.trim
 const TILE_THEMES = ['primary', 'success', 'warning', 'danger', 'info', 'secondary'];
 
 export default function Dashboard() {
+  const [searchTerm, setSearchTerm] = useState('');
+  // Read once on mount - Dashboard remounts fresh every time you navigate
+  // back to "/", so this can't go stale across a visit. Favorites gets a
+  // setter too, since un-favoriting a card *within* this same Favorites
+  // strip should drop it immediately rather than waiting for a remount.
+  const [favorites, setFavorites] = useState(() => getFavorites());
+  const [recent] = useState(() => getRecent());
+  const isSearching = searchTerm.trim().length > 0;
+
   return (
     <div className="container-fluid px-0 w-100">
 
-      {/* Mobile-only "install as an app" nudge - occupies the same slot the desktop hero uses */}
-      <InstallPromo />
+      <GlobalSearch sheetNames={SHEET_NAMES} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      {/* Hero Welcome Unit - Hidden on mobile, shown from tablet up */}
-      <div
-        className="d-none d-md-block p-4 p-md-5 rounded-3 shadow-sm border mb-4 text-center text-md-start position-relative overflow-hidden w-100"
-        style={{ background: 'linear-gradient(135deg, rgba(13,110,253,.08), rgba(13,202,240,.12))' }}
-      >
-        <div className="position-absolute top-0 end-0 p-4 opacity-10 d-none d-md-block">
-          <i className="bi bi-building-gear" style={{ fontSize: '100px' }}></i>
-        </div>
-        <div className="position-relative z-1" style={{ maxWidth: '800px' }}>
-          <span className="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-semibold font-monospace" style={{ fontSize: '0.6875rem' }}>
-            INTERNAL DIRECTORY RUNTIME
-          </span>
-          <h1 className="display-6 fw-bold text-dark tracking-tight mb-2">
-            CityOne Skyve Contacts
-          </h1>
-          <p className="lead text-secondary mb-0 fs-6">
-            Central communications hub. Select a directory division category below to view, search, or filter live synchronized contact cards.
-          </p>
-        </div>
-      </div>
+      {!isSearching && (
+        <>
+          {/* Mobile-only "install as an app" nudge - occupies the same slot the desktop hero uses */}
+          <InstallPromo />
 
-      {/* Directory Segments Category Header */}
-      <div className="d-flex align-items-center gap-2 mb-3 px-1">
-        <i className="bi bi-grid-fill text-primary"></i>
-        <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Available Directories</h2>
-      </div>
+          {/* Hero Welcome Unit - Hidden on mobile, shown from tablet up */}
+          <div
+            className="d-none d-md-block p-4 p-md-5 rounded-3 shadow-sm border mb-4 text-center text-md-start position-relative overflow-hidden w-100"
+            style={{ background: 'linear-gradient(135deg, rgba(13,110,253,.08), rgba(13,202,240,.12))' }}
+          >
+            <div className="position-absolute top-0 end-0 p-4 opacity-10 d-none d-md-block">
+              <i className="bi bi-building-gear" style={{ fontSize: '100px' }}></i>
+            </div>
+            <div className="position-relative z-1" style={{ maxWidth: '800px' }}>
+              <span className="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-semibold font-monospace" style={{ fontSize: '0.6875rem' }}>
+                INTERNAL DIRECTORY RUNTIME
+              </span>
+              <h1 className="display-6 fw-bold text-dark tracking-tight mb-2">
+                CityOne Skyve Contacts
+              </h1>
+              <p className="lead text-secondary mb-0 fs-6">
+                Central communications hub. Select a directory division category below to view, search, or filter live synchronized contact cards.
+              </p>
+            </div>
+          </div>
 
-      {/* RESPONSIVE GRID LAYOUT: 2 Columns on Mobile, 4 Columns on Desktop */}
-      {SHEET_NAMES.length > 0 ? (
-        <div className="row mx-n2 row-cols-2 row-cols-md-4 row-cols-xl-4 g-2 w-100 m-0">
-          {SHEET_NAMES.map((name, index) => {
-            const theme = TILE_THEMES[index % TILE_THEMES.length];
-            return (
-              <div key={index} className="col px-1">
-                <Link
-                  to={`/sheet/${encodeURIComponent(name)}`}
-                  className="card hover-card h-100 text-decoration-none bg-white shadow-sm rounded-3 p-3 d-flex flex-column justify-content-between position-relative overflow-hidden"
-                  style={{
-                    minHeight: '115px',
-                    borderTop: `3px solid var(--bs-${theme})`,
-                    '--tile-accent': `var(--bs-${theme})`,
-                  }}
-                >
-                  <div className="min-w-0">
-                    {/* Smaller, more compact icon wrapper */}
-                    <div
-                      className={`bg-${theme}-subtle text-${theme} rounded-2 d-flex align-items-center justify-content-center mb-2 shadow-xs`}
-                      style={{ width: '32px', height: '32px', fontSize: '14px' }}
-                    >
-                      <i className="bi bi-folder-symlink-fill"></i>
-                    </div>
-
-                    {/* Truncated header to protect layouts from long words */}
-                    <h3 className="h6 fw-bold text-dark mb-0 text-truncate font-sans-serif" style={{ fontSize: '0.875rem' }} title={name}>
-                      {name}
-                    </h3>
-                  </div>
-
-                  {/* Clean inline navigation indicator */}
-                  <div className={`d-flex align-items-center justify-content-end text-${theme} pt-1`} style={{ fontSize: '0.6875rem', fontWeight: '600' }}>
-                    <span>Open</span>
-                    <i className="bi bi-arrow-right-short fs-6 ms-0.5"></i>
-                  </div>
-                </Link>
+          {/* Favorites - only shown once something has been starred */}
+          {favorites.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-3 px-1">
+                <i className="bi bi-star-fill text-warning"></i>
+                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Favorites</h2>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="alert alert-warning shadow-sm rounded-3 border-warning-subtle mx-1" role="alert">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
-          <strong>No Sheets Configured:</strong> Check your <code>.env</code> file assignment setup for <code>VITE_SHEET_NAMES</code>.
-        </div>
+              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
+                {favorites.map((fav) => (
+                  <div key={fav.key} className="col">
+                    <ContactCard
+                      contact={fav.contact}
+                      sheetName={fav.sheetName}
+                      onFavoriteChange={() => setFavorites(getFavorites())}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recently Contacted - populated by tapping Call/WhatsApp/Save/Share on any card */}
+          {recent.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-3 px-1">
+                <i className="bi bi-clock-history text-secondary"></i>
+                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Recently Contacted</h2>
+              </div>
+              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
+                {recent.map((r) => (
+                  <div key={r.key} className="col">
+                    <ContactCard contact={r.contact} sheetName={r.sheetName} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Directory Segments Category Header */}
+          <div className="d-flex align-items-center gap-2 mb-3 px-1">
+            <i className="bi bi-grid-fill text-primary"></i>
+            <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Available Directories</h2>
+          </div>
+
+          {/* RESPONSIVE GRID LAYOUT: 2 Columns on Mobile, 4 Columns on Desktop */}
+          {SHEET_NAMES.length > 0 ? (
+            <div className="row mx-n2 row-cols-2 row-cols-md-4 row-cols-xl-4 g-2 w-100 m-0">
+              {SHEET_NAMES.map((name, index) => {
+                const theme = TILE_THEMES[index % TILE_THEMES.length];
+                return (
+                  <div key={index} className="col px-1">
+                    <Link
+                      to={`/sheet/${encodeURIComponent(name)}`}
+                      className="card hover-card h-100 text-decoration-none bg-white shadow-sm rounded-3 p-3 d-flex flex-column justify-content-between position-relative overflow-hidden"
+                      style={{
+                        minHeight: '115px',
+                        borderTop: `3px solid var(--bs-${theme})`,
+                        '--tile-accent': `var(--bs-${theme})`,
+                      }}
+                    >
+                      <div className="min-w-0">
+                        {/* Smaller, more compact icon wrapper */}
+                        <div
+                          className={`bg-${theme}-subtle text-${theme} rounded-2 d-flex align-items-center justify-content-center mb-2 shadow-xs`}
+                          style={{ width: '32px', height: '32px', fontSize: '14px' }}
+                        >
+                          <i className="bi bi-folder-symlink-fill"></i>
+                        </div>
+
+                        {/* Truncated header to protect layouts from long words */}
+                        <h3 className="h6 fw-bold text-dark mb-0 text-truncate font-sans-serif" style={{ fontSize: '0.875rem' }} title={name}>
+                          {name}
+                        </h3>
+                      </div>
+
+                      {/* Clean inline navigation indicator */}
+                      <div className={`d-flex align-items-center justify-content-end text-${theme} pt-1`} style={{ fontSize: '0.6875rem', fontWeight: '600' }}>
+                        <span>Open</span>
+                        <i className="bi bi-arrow-right-short fs-6 ms-0.5"></i>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="alert alert-warning shadow-sm rounded-3 border-warning-subtle mx-1" role="alert">
+              <i className="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>No Sheets Configured:</strong> Check your <code>.env</code> file assignment setup for <code>VITE_SHEET_NAMES</code>.
+            </div>
+          )}
+        </>
       )}
     </div>
   );

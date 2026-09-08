@@ -8,6 +8,10 @@ import {
   detectCategoryColumn,
   getCategoryOptions,
   getContactName,
+  getContactPhone,
+  getContactSubtitle,
+  truncateName,
+  makeContactKey,
 } from './sheetData';
 
 beforeEach(() => {
@@ -110,6 +114,60 @@ describe('getContactName', () => {
 
   it('falls back to "No Name" for a contact with no usable values', () => {
     expect(getContactName({})).toBe('No Name');
+  });
+});
+
+describe('getContactPhone', () => {
+  it('checks Phone/phone/Mobile/mobile in that order', () => {
+    expect(getContactPhone({ Phone: '1' })).toBe('1');
+    expect(getContactPhone({ phone: '2' })).toBe('2');
+    expect(getContactPhone({ Mobile: '3' })).toBe('3');
+    expect(getContactPhone({ mobile: '4' })).toBe('4');
+  });
+
+  it('returns an empty string when there is no phone-like field', () => {
+    expect(getContactPhone({ Name: 'A' })).toBe('');
+  });
+});
+
+describe('getContactSubtitle', () => {
+  it('prefers Designation/Role/City over positional fallback', () => {
+    expect(getContactSubtitle({ Name: 'A', Role: 'Electrician', Mobile: '1' })).toBe('Electrician');
+  });
+
+  it('falls back to the second value positionally', () => {
+    expect(getContactSubtitle({ Provider: 'Airtel', Alternate: '123456' })).toBe('123456');
+  });
+});
+
+describe('truncateName', () => {
+  it('leaves short names untouched', () => {
+    expect(truncateName('Ramita Maid')).toBe('Ramita Maid');
+  });
+
+  it('truncates long names with an ellipsis', () => {
+    expect(truncateName('Hanumant Pawar - Car Cleaning')).toBe('Hanumant Pawar - Car...');
+  });
+
+  it('returns "No Name" for an empty/falsy name', () => {
+    expect(truncateName('')).toBe('No Name');
+    expect(truncateName(null)).toBe('No Name');
+  });
+});
+
+describe('makeContactKey', () => {
+  it('prefers phone over name, case/whitespace-insensitively', () => {
+    expect(makeContactKey('Daily Services', { Name: 'Ramita', Mobile: ' 9960206961 ' }))
+      .toBe('Daily Services::9960206961');
+  });
+
+  it('falls back to name when there is no phone', () => {
+    expect(makeContactKey('Builder CRM', { Name: 'Deepak' })).toBe('Builder CRM::deepak');
+  });
+
+  it('keeps the same contact distinct across different sheets', () => {
+    const contact = { Name: 'Ramita', Mobile: '123' };
+    expect(makeContactKey('Sheet A', contact)).not.toBe(makeContactKey('Sheet B', contact));
   });
 });
 

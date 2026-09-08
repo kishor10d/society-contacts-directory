@@ -95,3 +95,28 @@ export function getCategoryOptions(data, categoryColumn) {
 export function getContactName(contact) {
   return contact.Name || contact.name || Object.values(contact)[0] || 'No Name';
 }
+
+export function getContactPhone(contact) {
+  return contact.Phone || contact.phone || contact.Mobile || contact.mobile || '';
+}
+
+export function getContactSubtitle(contact) {
+  return contact.Designation || contact.Role || contact.City || Object.values(contact)[1] || '';
+}
+
+export const MAX_NAME_LENGTH = 20;
+
+export function truncateName(name, maxLength = MAX_NAME_LENGTH) {
+  if (!name) return 'No Name';
+  const nameStr = name.toString();
+  return nameStr.length > maxLength ? nameStr.substring(0, maxLength).trim() + '...' : nameStr;
+}
+
+// Stable-enough identifier for a contact within a sheet, used to track
+// favorites/recents in localStorage. Prefers phone (more unique than name)
+// and falls back to name when a contact has no phone at all.
+export function makeContactKey(sheetName, contact) {
+  const phone = getContactPhone(contact);
+  const name = getContactName(contact);
+  return `${sheetName}::${(phone || name).toString().trim().toLowerCase()}`;
+}
