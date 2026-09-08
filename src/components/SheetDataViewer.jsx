@@ -79,6 +79,12 @@ function detectCategoryColumn(data, headers) {
   return best ? best.header : null;
 }
 
+// Same name-resolution fallback used when rendering a card, factored out so
+// sorting and rendering can never disagree on what a contact's name is.
+function getContactName(contact) {
+  return contact.Name || contact.name || Object.values(contact)[0] || 'No Name';
+}
+
 function getCategoryOptions(data, categoryColumn) {
   if (!categoryColumn) return [];
   const counts = new Map();
@@ -109,6 +115,7 @@ export default function SheetDataViewer() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortOrder, setSortOrder] = useState('none'); // 'none' | 'asc' | 'desc'
 
   const refreshBtnRef = useRef(null);
   const tooltipRef = useRef(null);
@@ -154,6 +161,7 @@ export default function SheetDataViewer() {
       setSearchTerm('');
       setDebouncedSearchTerm('');
       setSelectedCategory('all');
+      setSortOrder('none');
 
       // Sheet data rarely changes, so serve a recent cached copy instantly
       // instead of hitting Google Sheets on every visit.
@@ -247,15 +255,27 @@ export default function SheetDataViewer() {
   useEffect(() => {
     if (data.length === 0) return;
     const lowerSearch = debouncedSearchTerm.toLowerCase();
-    const results = data.filter((row) => {
+    let results = data.filter((row) => {
       if (selectedCategory !== 'all' && row[categoryColumn]?.toString().trim() !== selectedCategory) {
         return false;
       }
       if (!debouncedSearchTerm) return true;
       return Object.values(row).some(val => val?.toString().toLowerCase().includes(lowerSearch));
     });
+
+    if (sortOrder !== 'none') {
+      results = [...results].sort((a, b) => {
+        const comparison = getContactName(a).toString().localeCompare(getContactName(b).toString());
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+    }
+
     setFilteredData(results);
-  }, [debouncedSearchTerm, selectedCategory, data, categoryColumn]);
+  }, [debouncedSearchTerm, selectedCategory, sortOrder, data, categoryColumn]);
+
+  const cycleSortOrder = () => {
+    setSortOrder(prev => (prev === 'none' ? 'asc' : prev === 'asc' ? 'desc' : 'none'));
+  };
 
   return (
     <div className="sheet-card card">
@@ -290,13 +310,29 @@ export default function SheetDataViewer() {
           categoryOptions={categoryOptions}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
+          sortOrder={sortOrder}
+          onToggleSort={cycleSortOrder}
         />
       )}
 
       {loading && (
-        <div className="d-flex align-items-center text-muted py-5 px-3 gap-2 justify-content-center">
-          <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
-          <span>Loading contact entities...</span>
+        <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3" aria-busy="true" aria-label="Loading contacts">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="col">
+              <div className="card h-100 shadow-sm rounded-3 overflow-hidden">
+                <div className="p-3 d-flex align-items-start gap-3">
+                  <div className="skeleton-block rounded-circle flex-shrink-0" style={{ width: '50px', height: '50px' }}></div>
+                  <div className="flex-grow-1 min-w-0">
+                    <div className="skeleton-block rounded mb-2" style={{ height: '14px', width: '70%' }}></div>
+                    <div className="skeleton-block rounded" style={{ height: '11px', width: '45%' }}></div>
+                  </div>
+                </div>
+                <div className="border-top bg-light p-2">
+                  <div className="skeleton-block rounded" style={{ height: '26px' }}></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       
@@ -311,7 +347,7 @@ export default function SheetDataViewer() {
       {!loading && !error && filteredData.length > 0 && (
         <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
           {filteredData.map((contact, index) => {
-            const rawName = contact.Name || contact.name || Object.values(contact)[0] || "No Name";
+            const rawName = getContactName(contact);
             const contactPhone = contact.Phone || contact.phone || contact.Mobile || contact.mobile || "";
             const subTitle = contact.Designation || contact.Role || contact.City || Object.values(contact)[1] || "";
 

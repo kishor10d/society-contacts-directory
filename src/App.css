@@ -95,3 +95,31 @@
     font-size: 1.0625rem !important;
   }
 }
+
+/* Shimmering placeholder blocks for the loading-state skeleton cards. */
+.skeleton-block {
+  background: linear-gradient(90deg, #e9ecef 25%, #f1f3f5 37%, #e9ecef 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* Search input's clear (x) button, absolutely positioned inside the field. */
+.search-clear-btn {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 2.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+}

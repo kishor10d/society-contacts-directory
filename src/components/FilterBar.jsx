@@ -5,6 +5,18 @@ import React from 'react';
 // colors (matches the same palette the homepage tiles use).
 const CHIP_THEMES = ['primary', 'success', 'warning', 'danger', 'info', 'secondary'];
 
+const SORT_ICON = {
+  none: 'bi-arrow-down-up',
+  asc: 'bi-sort-alpha-down',
+  desc: 'bi-sort-alpha-up',
+};
+
+const SORT_TITLE = {
+  none: 'Sort A–Z',
+  asc: 'Sorted A–Z — tap for Z–A',
+  desc: 'Sorted Z–A — tap to reset',
+};
+
 export default function FilterBar({
   searchTerm,
   setSearchTerm,
@@ -12,19 +24,47 @@ export default function FilterBar({
   categoryOptions,
   selectedCategory,
   setSelectedCategory,
+  sortOrder,
+  onToggleSort,
 }) {
   return (
     <div className="filter-bar-sticky p-3 bg-light rounded-3 border mb-4 shadow-sm">
       <label className="form-label small fw-bold text-secondary mb-1">
         <i className="bi bi-search me-1"></i> Search Contacts:
       </label>
-      <input
-        type="text"
-        className="form-control bg-white shadow-none mb-3"
-        placeholder="Type name, phone, or any detail..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <div className="d-flex gap-2 mb-3">
+        <div className="position-relative flex-grow-1">
+          <input
+            type="text"
+            className="form-control bg-white shadow-none"
+            style={{ paddingRight: searchTerm ? '2.5rem' : undefined }}
+            placeholder="Type name, phone, or any detail..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="search-clear-btn tap-target-expand d-flex align-items-center justify-content-center"
+              onClick={() => setSearchTerm('')}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={`btn flex-shrink-0 ${sortOrder === 'none' ? 'btn-outline-secondary' : 'btn-secondary'}`}
+          onClick={onToggleSort}
+          title={SORT_TITLE[sortOrder]}
+          aria-label={SORT_TITLE[sortOrder]}
+        >
+          <i className={`bi ${SORT_ICON[sortOrder]}`}></i>
+        </button>
+      </div>
 
       {categoryColumn && categoryOptions.length > 0 && (
         <>
