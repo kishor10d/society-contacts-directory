@@ -54,3 +54,25 @@
   display: inline-block;
   animation: spin 0.8s linear infinite;
 }
+
+/* The sheet page's outer "card" wrapper eats ~1.5rem of padding on each
+   side, which barely matters on desktop but meaningfully shrinks the
+   contact cards on a narrow phone - flat/borderless below the tablet
+   breakpoint, real card chrome from there up. Defined directly (rather than
+   as Bootstrap utility classes on the element) because utilities like .p-4
+   or .shadow-sm carry !important, and this needs to NOT apply on mobile -
+   that would turn into a cascade-order tie this class can't reliably win. */
+.sheet-card {
+  border: 0 !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
+
+@media (min-width: 768px) {
+  .sheet-card {
+    background-color: #fff !important;
+    padding: 1.5rem !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+}

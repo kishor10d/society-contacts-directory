@@ -258,7 +258,7 @@ export default function SheetDataViewer() {
   }, [debouncedSearchTerm, selectedCategory, data, categoryColumn]);
 
   return (
-    <div className="card border-0 shadow-sm bg-white p-4 rounded-3">
+    <div className="sheet-card card">
       
       <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-2">
         <h2 className="h4 mb-0 fw-bold text-dark">{sheetName} Directory</h2>
