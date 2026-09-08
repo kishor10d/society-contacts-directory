@@ -96,6 +96,25 @@
   }
 }
 
+/* Bootstrap's default outline-warning/outline-info text (the raw theme
+   color on white) fails WCAG AA contrast - about 1.6:1 and 2.0:1, well
+   under the 4.5:1 normal-text minimum. Use Bootstrap's own darker
+   "-text-emphasis" tokens for the unselected chip's border+text instead.
+   Selected/filled chips are unaffected: Bootstrap already auto-picks dark
+   text for warning/info there, which already passes (~8-9:1). Scoped to
+   .chip-row so nothing else using these outline variants is affected, and
+   a two-class selector so it wins on specificity without needing
+   !important. */
+.chip-row .btn-outline-warning {
+  color: var(--bs-warning-text-emphasis, #664d03);
+  border-color: var(--bs-warning-text-emphasis, #664d03);
+}
+
+.chip-row .btn-outline-info {
+  color: var(--bs-info-text-emphasis, #055160);
+  border-color: var(--bs-info-text-emphasis, #055160);
+}
+
 /* Shimmering placeholder blocks for the loading-state skeleton cards. */
 .skeleton-block {
   background: linear-gradient(90deg, #e9ecef 25%, #f1f3f5 37%, #e9ecef 63%);
