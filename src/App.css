@@ -76,3 +76,22 @@
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
   }
 }
+
+/* Slightly larger contact-card text on mobile, where each card is full
+   width and has the room to spare. !important is needed here because
+   these elements' base sizing (Bootstrap's .h6, or an inline style on the
+   buttons) would otherwise win the cascade-order tie against a plain
+   override of equal specificity. */
+@media (max-width: 767.98px) {
+  .contact-name {
+    font-size: 1.0625rem !important;
+  }
+
+  .contact-subtitle {
+    font-size: 0.9375rem !important;
+  }
+
+  .contact-action-btn {
+    font-size: 0.9375rem !important;
+  }
+}

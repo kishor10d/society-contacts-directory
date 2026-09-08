@@ -354,10 +354,14 @@ export default function SheetDataViewer() {
 
                     {/* Meta Fields Content Stack */}
                     <div className="min-w-0 flex-grow-1">
-                      <h3 className="h6 text-truncate text-dark mb-0 fw-bold" title={rawName.toString()}>
+                      <h3 className="h6 contact-name text-truncate text-dark mb-0 fw-bold" title={rawName.toString()}>
                         {displayedName}
                       </h3>
-                      {subTitle && <small className="text-muted text-truncate d-block mb-2">{subTitle.toString()}</small>}
+                      {subTitle && (
+                        <small className="contact-subtitle text-muted text-truncate d-block mb-2">
+                          {subTitle.toString()}
+                        </small>
+                      )}
                       
                       <div className="d-flex flex-wrap gap-1 align-items-center">
                         {Object.entries(contact).map(([key, val]) => {
@@ -376,18 +380,18 @@ export default function SheetDataViewer() {
                   {contactPhone ? (
                     <div className="d-flex border-top bg-light">
                       {/* CALL ACTION BUTTON */}
-                      <a 
+                      <a
                         href={`tel:${contactPhone}`}
-                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 border-end d-flex align-items-center justify-content-center gap-2 fw-semibold text-success"
+                        className="contact-action-btn btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 border-end d-flex align-items-center justify-content-center gap-2 fw-semibold text-success"
                         style={{ fontSize: '0.8125rem' }}
                       >
                         <i className="bi bi-telephone-fill"></i> Call
                       </a>
                       
                       {/* SAVE ACTION BUTTON */}
-                      <button 
+                      <button
                         onClick={() => handleSaveContact(contact, rawName, contactPhone, subTitle)}
-                        className="btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold text-primary"
+                        className="contact-action-btn btn btn-light btn-sm flex-grow-1 rounded-0 py-2.5 d-flex align-items-center justify-content-center gap-2 fw-semibold text-primary"
                         style={{ fontSize: '0.8125rem' }}
                       >
                         <i className="bi bi-person-plus-fill"></i> Save Contact
