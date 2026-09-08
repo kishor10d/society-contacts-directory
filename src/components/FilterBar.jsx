@@ -1,5 +1,10 @@
 import React from 'react';
 
+// Cycled by index so every category chip gets a distinct color regardless
+// of how many categories a sheet has, using Bootstrap's existing theme
+// colors (matches the same palette the homepage tiles use).
+const CHIP_THEMES = ['primary', 'success', 'warning', 'danger', 'info', 'secondary'];
+
 export default function FilterBar({
   searchTerm,
   setSearchTerm,
@@ -30,26 +35,29 @@ export default function FilterBar({
             <button
               type="button"
               className={`btn rounded-pill flex-shrink-0 px-3 py-2 fw-semibold ${
-                selectedCategory === 'all' ? 'btn-primary' : 'btn-outline-secondary'
+                selectedCategory === 'all' ? 'btn-dark' : 'btn-outline-secondary'
               }`}
               style={{ fontSize: '0.8125rem' }}
               onClick={() => setSelectedCategory('all')}
             >
               All
             </button>
-            {categoryOptions.map(({ value, count }) => (
-              <button
-                key={value}
-                type="button"
-                className={`btn rounded-pill flex-shrink-0 px-3 py-2 fw-semibold ${
-                  selectedCategory === value ? 'btn-primary' : 'btn-outline-secondary'
-                }`}
-                style={{ fontSize: '0.8125rem' }}
-                onClick={() => setSelectedCategory(value)}
-              >
-                {value} <span className="opacity-75">{count}</span>
-              </button>
-            ))}
+            {categoryOptions.map(({ value, count }, index) => {
+              const theme = CHIP_THEMES[index % CHIP_THEMES.length];
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={`btn rounded-pill flex-shrink-0 px-3 py-2 fw-semibold ${
+                    selectedCategory === value ? `btn-${theme}` : `btn-outline-${theme}`
+                  }`}
+                  style={{ fontSize: '0.8125rem' }}
+                  onClick={() => setSelectedCategory(value)}
+                >
+                  {value} <span className="opacity-75">{count}</span>
+                </button>
+              );
+            })}
           </div>
         </>
       )}
