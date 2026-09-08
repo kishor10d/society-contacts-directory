@@ -41,5 +41,6 @@ export default function useInstallPrompt() {
   return {
     canInstall: !isInstalled && deferredPrompt !== null,
     promptInstall,
+    isInstalled,
   };
 }

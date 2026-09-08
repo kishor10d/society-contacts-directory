@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import InstallPromo from './InstallPromo';
 
 // Fetch names from environment variables
 const SHEET_NAMES_ENV = import.meta.env.VITE_SHEET_NAMES || '';
@@ -13,7 +14,10 @@ const TILE_THEMES = ['primary', 'success', 'warning', 'danger', 'info', 'seconda
 export default function Dashboard() {
   return (
     <div className="container-fluid px-0 w-100">
-      
+
+      {/* Mobile-only "install as an app" nudge - occupies the same slot the desktop hero uses */}
+      <InstallPromo />
+
       {/* Hero Welcome Unit - Hidden on mobile, shown from tablet up */}
       <div
         className="d-none d-md-block p-4 p-md-5 rounded-3 shadow-sm border mb-4 text-center text-md-start position-relative overflow-hidden w-100"
