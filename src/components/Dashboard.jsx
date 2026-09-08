@@ -56,45 +56,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Favorites - only shown once something has been starred */}
-          {favorites.length > 0 && (
-            <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-3 px-1">
-                <i className="bi bi-star-fill text-warning"></i>
-                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Favorites</h2>
-              </div>
-              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
-                {favorites.map((fav) => (
-                  <div key={fav.key} className="col">
-                    <ContactCard
-                      contact={fav.contact}
-                      sheetName={fav.sheetName}
-                      sourceLabel={fav.sheetName}
-                      onFavoriteChange={() => setFavorites(getFavorites())}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recently Contacted - populated by tapping Call/WhatsApp/Save/Share on any card */}
-          {recent.length > 0 && (
-            <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-3 px-1">
-                <i className="bi bi-clock-history text-secondary"></i>
-                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Recently Contacted</h2>
-              </div>
-              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
-                {recent.map((r) => (
-                  <div key={r.key} className="col">
-                    <ContactCard contact={r.contact} sheetName={r.sheetName} sourceLabel={r.sheetName} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Directory Segments Category Header */}
           <div className="d-flex align-items-center gap-2 mb-3 px-1">
             <i className="bi bi-grid-fill text-primary"></i>
@@ -146,6 +107,45 @@ export default function Dashboard() {
             <div className="alert alert-warning shadow-sm rounded-3 border-warning-subtle mx-1" role="alert">
               <i className="bi bi-exclamation-triangle-fill me-2"></i>
               <strong>No Sheets Configured:</strong> Check your <code>.env</code> file assignment setup for <code>VITE_SHEET_NAMES</code>.
+            </div>
+          )}
+
+          {/* Favorites - only shown once something has been starred */}
+          {favorites.length > 0 && (
+            <div className="mb-4 mt-4">
+              <div className="d-flex align-items-center gap-2 mb-3 px-1">
+                <i className="bi bi-star-fill text-warning"></i>
+                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Favorites</h2>
+              </div>
+              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
+                {favorites.map((fav) => (
+                  <div key={fav.key} className="col">
+                    <ContactCard
+                      contact={fav.contact}
+                      sheetName={fav.sheetName}
+                      sourceLabel={fav.sheetName}
+                      onFavoriteChange={() => setFavorites(getFavorites())}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recently Contacted - populated by tapping Call/WhatsApp/Save/Share on any card */}
+          {recent.length > 0 && (
+            <div className="mb-4 mt-4">
+              <div className="d-flex align-items-center gap-2 mb-3 px-1">
+                <i className="bi bi-clock-history text-secondary"></i>
+                <h2 className="h6 mb-0 fw-bold text-dark text-uppercase tracking-wider">Recently Contacted</h2>
+              </div>
+              <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
+                {recent.map((r) => (
+                  <div key={r.key} className="col">
+                    <ContactCard contact={r.contact} sheetName={r.sheetName} sourceLabel={r.sheetName} />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </>
