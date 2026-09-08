@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 
-// Wraps the browser's `beforeinstallprompt` flow (Chrome/Edge/Android) so the
-// UI can offer an explicit "Install App" action instead of relying on users
-// to notice the browser's own, easy-to-miss install affordance.
+// Wraps the browser's `beforeinstallprompt` flow (Chrome/Edge/Android).
+// Deliberately does NOT call event.preventDefault(), so Chrome's own
+// automatic install banner still shows up on its own timing; we also stash
+// the event so the navbar's "Install App" button can trigger the same
+// prompt manually, for people who dismiss or never see the automatic one.
 // Safari/iOS never fires this event - there's no programmatic install there,
 // people still have to use Share > Add to Home Screen.
 export default function useInstallPrompt() {
@@ -13,7 +15,6 @@ export default function useInstallPrompt() {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
       setDeferredPrompt(event);
     };
     const handleAppInstalled = () => {

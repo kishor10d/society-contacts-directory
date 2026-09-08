@@ -5,12 +5,20 @@ import { Link } from 'react-router-dom';
 const SHEET_NAMES_ENV = import.meta.env.VITE_SHEET_NAMES || '';
 const SHEET_NAMES = SHEET_NAMES_ENV ? SHEET_NAMES_ENV.split(',').map(s => s.trim()) : [];
 
+// Cycled by index so every tile gets a distinct color regardless of how many
+// sheets are configured, using Bootstrap's existing theme colors (no new
+// palette to maintain).
+const TILE_THEMES = ['primary', 'success', 'warning', 'danger', 'info', 'secondary'];
+
 export default function Dashboard() {
   return (
     <div className="container-fluid px-0 w-100">
       
       {/* Hero Welcome Unit - Hidden on mobile, shown from tablet up */}
-      <div className="d-none d-md-block bg-white p-4 p-md-5 rounded-3 shadow-sm border mb-4 text-center text-md-start position-relative overflow-hidden w-100">
+      <div
+        className="d-none d-md-block p-4 p-md-5 rounded-3 shadow-sm border mb-4 text-center text-md-start position-relative overflow-hidden w-100"
+        style={{ background: 'linear-gradient(135deg, rgba(13,110,253,.08), rgba(13,202,240,.12))' }}
+      >
         <div className="position-absolute top-0 end-0 p-4 opacity-10 d-none d-md-block">
           <i className="bi bi-building-gear" style={{ fontSize: '100px' }}></i>
         </div>
@@ -36,34 +44,43 @@ export default function Dashboard() {
       {/* RESPONSIVE GRID LAYOUT: 2 Columns on Mobile, 4 Columns on Desktop */}
       {SHEET_NAMES.length > 0 ? (
         <div className="row mx-n2 row-cols-2 row-cols-md-4 row-cols-xl-4 g-2 w-100 m-0">
-          {SHEET_NAMES.map((name, index) => (
-            <div key={index} className="col px-1">
-              <Link
-                to={`/sheet/${encodeURIComponent(name)}`}
-                className="card hover-card h-100 text-decoration-none bg-white shadow-sm rounded-3 p-3 d-flex flex-column justify-content-between position-relative overflow-hidden"
-                style={{ minHeight: '115px' }}
-              >
-                <div className="min-w-0">
-                  {/* Smaller, more compact icon wrapper */}
-                  <div className="bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center mb-2 shadow-xs" 
-                       style={{ width: '32px', height: '32px', fontSize: '14px' }}>
-                    <i className="bi bi-folder-symlink-fill"></i>
+          {SHEET_NAMES.map((name, index) => {
+            const theme = TILE_THEMES[index % TILE_THEMES.length];
+            return (
+              <div key={index} className="col px-1">
+                <Link
+                  to={`/sheet/${encodeURIComponent(name)}`}
+                  className="card hover-card h-100 text-decoration-none bg-white shadow-sm rounded-3 p-3 d-flex flex-column justify-content-between position-relative overflow-hidden"
+                  style={{
+                    minHeight: '115px',
+                    borderTop: `3px solid var(--bs-${theme})`,
+                    '--tile-accent': `var(--bs-${theme})`,
+                  }}
+                >
+                  <div className="min-w-0">
+                    {/* Smaller, more compact icon wrapper */}
+                    <div
+                      className={`bg-${theme}-subtle text-${theme} rounded-2 d-flex align-items-center justify-content-center mb-2 shadow-xs`}
+                      style={{ width: '32px', height: '32px', fontSize: '14px' }}
+                    >
+                      <i className="bi bi-folder-symlink-fill"></i>
+                    </div>
+
+                    {/* Truncated header to protect layouts from long words */}
+                    <h3 className="h6 fw-bold text-dark mb-0 text-truncate font-sans-serif" style={{ fontSize: '0.875rem' }} title={name}>
+                      {name}
+                    </h3>
                   </div>
-                  
-                  {/* Truncated header to protect layouts from long words */}
-                  <h3 className="h6 fw-bold text-dark mb-0 text-truncate font-sans-serif" style={{ fontSize: '0.875rem' }} title={name}>
-                    {name}
-                  </h3>
-                </div>
-                
-                {/* Clean inline navigation indicator */}
-                <div className="d-flex align-items-center justify-content-end text-primary pt-1" style={{ fontSize: '0.6875rem', fontWeight: '600' }}>
-                  <span>Open</span>
-                  <i className="bi bi-arrow-right-short fs-6 ms-0.5"></i>
-                </div>
-              </Link>
-            </div>
-          ))}
+
+                  {/* Clean inline navigation indicator */}
+                  <div className={`d-flex align-items-center justify-content-end text-${theme} pt-1`} style={{ fontSize: '0.6875rem', fontWeight: '600' }}>
+                    <span>Open</span>
+                    <i className="bi bi-arrow-right-short fs-6 ms-0.5"></i>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="alert alert-warning shadow-sm rounded-3 border-warning-subtle mx-1" role="alert">
