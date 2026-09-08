@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { Tooltip } from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import FilterBar from './FilterBar';
 
 const SPREADSHEET_ID = import.meta.env.VITE_V_SPREADSHEET_ID || import.meta.env.VITE_SPREADSHEET_ID;
@@ -96,13 +97,21 @@ export default function SheetDataViewer() {
   const { sheetName } = useParams();
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Starts true: a fetch (or at least a cache check) always kicks off on
+  // mount, and defaulting to false made data.length === 0 look identical to
+  // a genuinely empty sheet for one render before that fetch had even
+  // started - harmless before, but the auto-tooltip below turns that into a
+  // real (crashing) false positive if left as false.
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const refreshBtnRef = useRef(null);
+  const tooltipRef = useRef(null);
 
   const truncateName = (str) => {
     if (!str) return "No Name";
@@ -177,6 +186,7 @@ export default function SheetDataViewer() {
 
   const handleRefresh = async () => {
     if (!sheetName || refreshing) return;
+    tooltipRef.current?.hide();
     setRefreshing(true);
     setError(null);
     try {
@@ -190,6 +200,38 @@ export default function SheetDataViewer() {
       setRefreshing(false);
     }
   };
+
+  // Nothing loaded (not still loading, no error) - point an auto-shown
+  // tooltip at the refresh button so it's obvious how to try again.
+  const showEmptyRefreshHint = !loading && !error && data.length === 0;
+
+  useEffect(() => {
+    if (!showEmptyRefreshHint) return undefined;
+    const btn = refreshBtnRef.current;
+    if (!btn) return undefined;
+
+    // Built fresh each time rather than reused: the refresh button itself
+    // unmounts/remounts whenever `loading` toggles (it's conditionally
+    // rendered), so a stale instance from a previous mount would end up
+    // driving a detached DOM node and throw.
+    const tooltip = new Tooltip(btn, {
+      title: 'No contacts loaded — tap to refresh',
+      placement: 'bottom',
+      trigger: 'manual',
+    });
+    tooltipRef.current = tooltip;
+    tooltip.show();
+
+    const autoHide = setTimeout(() => {
+      if (btn.isConnected) tooltip.hide();
+    }, 6000);
+
+    return () => {
+      clearTimeout(autoHide);
+      tooltip.dispose();
+      if (tooltipRef.current === tooltip) tooltipRef.current = null;
+    };
+  }, [showEmptyRefreshHint]);
 
   // Debounce the raw keystrokes so filtering doesn't run on every character,
   // which can stutter on longer sheets when typing on a phone.
@@ -226,6 +268,7 @@ export default function SheetDataViewer() {
           </span>
           {!loading && !error && (
             <button
+              ref={refreshBtnRef}
               type="button"
               className="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style={{ width: '36px', height: '36px' }}
@@ -367,6 +410,14 @@ export default function SheetDataViewer() {
         <div className="text-center text-muted py-5">
           <i className="bi bi-search fs-2 mb-2 d-block text-black-50"></i>
           <p className="mb-0">No directory contacts found matching criteria inputs.</p>
+        </div>
+      )}
+
+      {showEmptyRefreshHint && (
+        <div className="text-center text-muted py-5">
+          <i className="bi bi-inbox fs-2 mb-2 d-block text-black-50"></i>
+          <p className="mb-0">No contacts loaded for this section yet.</p>
+          <p className="mb-0 small">Tap the refresh button above to try again.</p>
         </div>
       )}
     </div>
