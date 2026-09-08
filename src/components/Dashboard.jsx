@@ -69,6 +69,7 @@ export default function Dashboard() {
                     <ContactCard
                       contact={fav.contact}
                       sheetName={fav.sheetName}
+                      sourceLabel={fav.sheetName}
                       onFavoriteChange={() => setFavorites(getFavorites())}
                     />
                   </div>
@@ -87,7 +88,7 @@ export default function Dashboard() {
               <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
                 {recent.map((r) => (
                   <div key={r.key} className="col">
-                    <ContactCard contact={r.contact} sheetName={r.sheetName} />
+                    <ContactCard contact={r.contact} sheetName={r.sheetName} sourceLabel={r.sheetName} />
                   </div>
                 ))}
               </div>

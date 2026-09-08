@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import useOnlineStatus from '../hooks/useOnlineStatus';
+import ScrollToTopButton from './ScrollToTopButton';
 
 export default function MainLayout({ sheetNames }) {
   const { canInstall, promptInstall } = useInstallPrompt();
@@ -123,6 +124,8 @@ export default function MainLayout({ sheetNames }) {
           &copy; {new Date().getFullYear()} CityOne Skyve Contacts. All rights reserved.
         </div>
       </footer>
+
+      <ScrollToTopButton />
     </div>
   );
 }

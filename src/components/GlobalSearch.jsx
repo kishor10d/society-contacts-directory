@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import ContactCard from './ContactCard';
 import { readCache, writeCache, fetchSheetRows } from '../utils/sheetData';
 
@@ -109,15 +108,7 @@ export default function GlobalSearch({ sheetNames, searchTerm, setSearchTerm }) 
             <div className="row row-cols-1 row-cols-md-4 row-cols-xl-4 g-3">
               {results.map(({ sheetName, contact }, index) => (
                 <div key={`${sheetName}-${index}`} className="col">
-                  <div className="mb-1">
-                    <Link
-                      to={`/sheet/${encodeURIComponent(sheetName)}`}
-                      className="badge bg-light text-secondary border text-decoration-none"
-                    >
-                      {sheetName}
-                    </Link>
-                  </div>
-                  <ContactCard contact={contact} sheetName={sheetName} />
+                  <ContactCard contact={contact} sheetName={sheetName} sourceLabel={sheetName} />
                 </div>
               ))}
             </div>

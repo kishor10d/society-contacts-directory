@@ -8,7 +8,7 @@ const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 
 // Single contact card, shared by the per-sheet grid, the homepage's
 // Favorites/Recently Contacted strips, and global search results - so
 // favoriting, sharing, and the vCard save logic only live in one place.
-export default function ContactCard({ contact, sheetName, onFavoriteChange }) {
+export default function ContactCard({ contact, sheetName, onFavoriteChange, sourceLabel }) {
   const rawName = getContactName(contact);
   const contactPhone = getContactPhone(contact);
   const subTitle = getContactSubtitle(contact);
@@ -70,6 +70,21 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange }) {
 
   return (
     <div className="card hover-card h-100 shadow-sm rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden position-relative">
+
+      {/* Which sheet this contact is from - shown only where that's ambiguous
+          (global search results, homepage Favorites/Recently Contacted).
+          Plain watermark text rather than a link/badge sitting outside the
+          card: an earlier version used an external badge above the card,
+          but combined with h-100 that made the card overflow its own grid
+          column and overlap the badge below it. */}
+      {sourceLabel && (
+        <span
+          className="position-absolute text-uppercase text-secondary fw-semibold text-truncate"
+          style={{ top: '10px', left: '14px', right: '70px', fontSize: '0.625rem', opacity: 0.45, letterSpacing: '0.03em', zIndex: 1 }}
+        >
+          {sourceLabel}
+        </span>
+      )}
 
       {/* FAVORITE + SHARE, top-right corner */}
       <div className="position-absolute d-flex gap-1" style={{ top: '8px', right: '8px', zIndex: 3 }}>
