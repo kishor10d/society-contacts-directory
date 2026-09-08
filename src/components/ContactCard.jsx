@@ -71,27 +71,12 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
   return (
     <div className="card hover-card h-100 shadow-sm rounded-3 d-flex flex-column justify-content-between bg-white overflow-hidden position-relative">
 
-      {/* Which sheet this contact is from - shown only where that's ambiguous
-          (global search results, homepage Favorites/Recently Contacted).
-          Plain watermark text rather than a link/badge sitting outside the
-          card: an earlier version used an external badge above the card,
-          but combined with h-100 that made the card overflow its own grid
-          column and overlap the badge below it. */}
-      {sourceLabel && (
-        <span
-          className="position-absolute text-uppercase text-secondary fw-semibold text-truncate"
-          style={{ top: '10px', left: '14px', right: '70px', fontSize: '0.625rem', opacity: 0.45, letterSpacing: '0.03em', zIndex: 1 }}
-        >
-          {sourceLabel}
-        </span>
-      )}
-
       {/* FAVORITE + SHARE, top-right corner */}
       <div className="position-absolute d-flex gap-1" style={{ top: '8px', right: '8px', zIndex: 3 }}>
         <button
           type="button"
           onClick={handleToggleFavorite}
-          className="tap-target-expand btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center justify-content-center"
+          className="tap-target-expand position-relative btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center justify-content-center"
           style={{ width: '26px', height: '26px', fontSize: '1rem' }}
           title={favorited ? 'Remove from favorites' : 'Add to favorites'}
           aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
@@ -102,7 +87,7 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
           <button
             type="button"
             onClick={handleShare}
-            className="tap-target-expand btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center justify-content-center"
+            className="tap-target-expand position-relative btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center justify-content-center"
             style={{ width: '26px', height: '26px', fontSize: '1rem' }}
             title="Share this contact"
             aria-label="Share this contact"
@@ -145,6 +130,20 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
 
         {/* Meta Fields Content Stack */}
         <div className="min-w-0 flex-grow-1 pe-4">
+          {/* Which sheet this contact is from - shown only where that's
+              ambiguous (global search results, homepage Favorites/Recently
+              Contacted). Rendered in normal flow inside the card, not as an
+              external sibling above it: an earlier version used an outside
+              badge, but combined with h-100 that made the card overflow its
+              own grid column and overlap the badge below it. */}
+          {sourceLabel && (
+            <span
+              className="badge bg-light text-secondary border text-truncate d-inline-block mb-1"
+              style={{ fontSize: '0.625rem', maxWidth: '100%' }}
+            >
+              {sourceLabel}
+            </span>
+          )}
           <h3 className="h6 contact-name text-truncate text-dark mb-0 fw-bold" title={rawName.toString()}>
             {displayedName}
           </h3>
