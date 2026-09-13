@@ -1,23 +1,55 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
+import { Collapse } from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import useInstallPrompt from '../hooks/useInstallPrompt';
 import useOnlineStatus from '../hooks/useOnlineStatus';
 import ScrollToTopButton from './ScrollToTopButton';
 
+const NAV_COLLAPSE_ID = 'skyveDirectoryNavbar';
+
 export default function MainLayout({ sheetNames }) {
   const { canInstall, promptInstall } = useInstallPrompt();
   const isOnline = useOnlineStatus();
+  const navRef = useRef(null);
+
+  // The bare Bootstrap .collapse component (unlike offcanvas/dropdown) only
+  // ever closes via its own toggler button - it has no built-in "close on
+  // link click" or "close on outside click" behavior. That's invisible on a
+  // traditional multi-page site (navigating away reloads the DOM anyway),
+  // but this is a client-side-routed SPA, so the open menu just persists
+  // over whatever page renders underneath it unless we close it ourselves.
+  const closeMenu = () => {
+    const collapseEl = document.getElementById(NAV_COLLAPSE_ID);
+    if (!collapseEl || !collapseEl.classList.contains('show')) return;
+    Collapse.getOrCreateInstance(collapseEl, { toggle: false }).hide();
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) closeMenu();
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') closeMenu();
+    };
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light text-dark w-100 overflow-x-hidden">
       
       {/* RESPONSIVE TOP NAVIGATION BAR */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-3 py-2 w-100">
+      <nav ref={navRef} className="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-3 py-2 w-100">
         <div className="container-fluid px-0">
-          
+
           {/* BRAND LOGO IDENTITY (Clickable Link to Home Dashboard) */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
+            onClick={closeMenu}
             className="d-flex align-items-center text-white text-decoration-none me-3 hover-opacity transition-all"
             title="Go to Home Dashboard"
           >
@@ -66,7 +98,7 @@ export default function MainLayout({ sheetNames }) {
           {/* Collapsible Menu Container */}
           <div className="collapse navbar-collapse" id="skyveDirectoryNavbar">
             
-            <ul className="navbar-nav ms-lg-4 mt-3 mt-lg-0 gap-1 flex-grow-1 justify-content-lg-start">
+            <ul onClick={closeMenu} className="navbar-nav ms-lg-4 mt-3 mt-lg-0 gap-1 flex-grow-1 justify-content-lg-start">
 							<li className="nav-item">
 								<NavLink
 									to="/"
