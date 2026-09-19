@@ -13,9 +13,11 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
   const contactPhone = getContactPhone(contact);
   const subTitle = getContactSubtitle(contact);
   const displayedName = truncateName(rawName);
+  const isNameTruncated = displayedName !== rawName.toString();
   const contactKey = makeContactKey(sheetName, contact);
 
   const [favorited, setFavorited] = useState(() => isFavorited(contactKey));
+  const [nameExpanded, setNameExpanded] = useState(false);
 
   const track = () => recordRecent({ key: contactKey, sheetName, contact });
 
@@ -172,8 +174,25 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
               {sourceLabel}
             </span>
           )}
-          <h3 className="h6 contact-name text-truncate text-dark mb-0 fw-bold" title={rawName.toString()}>
-            {displayedName}
+          {/* Tap a truncated name to see it in full, in place - works the
+              same way on mobile (no hover) as on desktop, unlike relying on
+              the title-attribute tooltip alone. */}
+          <h3
+            className={`h6 contact-name text-dark mb-0 fw-bold ${nameExpanded ? '' : 'text-truncate'}`}
+            title={!nameExpanded && isNameTruncated ? rawName.toString() : undefined}
+            onClick={isNameTruncated ? () => setNameExpanded(prev => !prev) : undefined}
+            style={{
+              cursor: isNameTruncated ? 'pointer' : 'default',
+              wordBreak: nameExpanded ? 'break-word' : undefined,
+            }}
+          >
+            {nameExpanded ? rawName.toString() : displayedName}
+            {isNameTruncated && (
+              <i
+                className={`bi ${nameExpanded ? 'bi-chevron-up' : 'bi-chevron-down'} text-secondary ms-1`}
+                style={{ fontSize: '0.625rem' }}
+              ></i>
+            )}
           </h3>
           {subTitle && (
             <small className="contact-subtitle text-muted text-truncate d-block mb-2">
