@@ -78,7 +78,7 @@ export default function Dashboard() {
                         '--tile-accent': `var(--bs-${theme})`,
                       }}
                     >
-                      <div className="min-w-0">
+                      <div style={{ minWidth: 0 }}>
                         {/* Smaller, more compact icon wrapper */}
                         <div
                           className={`bg-${theme}-subtle text-${theme} rounded-2 d-flex align-items-center justify-content-center mb-2 shadow-xs`}

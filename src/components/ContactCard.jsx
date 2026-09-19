@@ -129,7 +129,35 @@ export default function ContactCard({ contact, sheetName, onFavoriteChange, sour
         </div>
 
         {/* Meta Fields Content Stack */}
-        <div className="min-w-0 flex-grow-1 pe-4">
+        {/* Two things had to be true for the truncated name to size itself
+            correctly here, and neither was:
+            1. "min-w-0" is not a real Bootstrap 5 utility class (Bootstrap
+               only ships min-vw-100/min-vh-100 for viewport units, and
+               mw-100 for max-width) - it compiled to nothing, so this
+               item's min-width silently stayed at its default "auto"
+               despite the class being right there in the markup.
+            2. flex-grow-1's default flex-basis ("auto") means this item's
+               hypothetical size is its content's natural width - and since
+               .contact-name forces white-space: nowrap, a longer name made
+               the whole box want to be wider.
+            Together, min-width:auto (browsers won't shrink a flex item
+            below its content's min-content size unless min-width is
+            explicitly 0) plus an auto basis meant this box's rendered
+            width scaled with name length instead of staying fixed to the
+            grid column - confirmed by measuring it: ~133px for a short
+            name vs ~182px for a long one, in the exact same column. Both
+            minWidth: 0 and flex-basis: 0 are required to make sizing
+            content-independent.
+            Right padding clears the favorite+share icon cluster (26px +
+            4px gap + 26px = 56px, offset 8px from the card edge = 64px
+            from the edge; minus the panel's own 16px padding = 48px
+            minimum, plus some margin). The old pe-4 (24px) wasn't enough
+            on its own either, though it went unnoticed for the same
+            reason: on a wide mobile card the (mis-sized) box rarely
+            reached its own boundary, but on a narrower desktop column
+            (4-up grid) it regularly did, rendering the name's tail end
+            underneath the icon buttons. */}
+        <div style={{ flex: '1 1 0%', minWidth: 0, paddingRight: '4rem' }}>
           {/* Which sheet this contact is from - shown only where that's
               ambiguous (global search results, homepage Favorites/Recently
               Contacted). Rendered in normal flow inside the card, not as an

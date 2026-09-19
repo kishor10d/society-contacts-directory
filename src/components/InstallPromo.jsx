@@ -21,7 +21,7 @@ export default function InstallPromo() {
         <i className="bi bi-phone"></i>
       </div>
 
-      <div className="flex-grow-1 min-w-0">
+      <div className="flex-grow-1" style={{ minWidth: 0 }}>
         <p className="mb-0 fw-bold text-dark" style={{ fontSize: '0.875rem' }}>
           Use this as an app
         </p>

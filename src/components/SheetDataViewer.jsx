@@ -202,7 +202,7 @@ export default function SheetDataViewer() {
               <div className="card h-100 shadow-sm rounded-3 overflow-hidden">
                 <div className="p-3 d-flex align-items-start gap-3">
                   <div className="skeleton-block rounded-circle flex-shrink-0" style={{ width: '50px', height: '50px' }}></div>
-                  <div className="flex-grow-1 min-w-0">
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <div className="skeleton-block rounded mb-2" style={{ height: '14px', width: '70%' }}></div>
                     <div className="skeleton-block rounded" style={{ height: '11px', width: '45%' }}></div>
                   </div>
